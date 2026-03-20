@@ -23,7 +23,7 @@ Beyond basic statistics, I performed deep-dive analysis into feature distributio
 * **SMOTE:** Generated synthetic examples for the minority class in the high-dimensional feature space.
 * **Cost-Sensitive Learning**: Instead of modifying the dataset (which can lead to overfitting or loss of information), I modified the Loss Function, implementing the calculation of the ratio of negative to positive samples.This forces the model to prioritize the "Recall" of delinquent borrowers, which is the primary KPI in credit risk.
 
-The reason why I used two approaches to handle unbalanced data is because I noticed the SMOTE solution's result was not optimistic. Therefore, I used cost-sensitive learning approach to try enhacning the model performance, and it work better than SMOTE approach.
+The reason why I used two approaches to handle unbalanced data is because I noticed the SMOTE solution's result was not optimistic. Therefore, I used cost-sensitive learning approach to try enhacning the model performance, and it performed better than SMOTE approach.
 
 ## Model Architecture and Hyperparameter Tuning:
 I utilized XGBoost for its exceptional handling of tabular data and built-in support for missing values.
