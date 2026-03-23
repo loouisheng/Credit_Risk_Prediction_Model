@@ -1,6 +1,3 @@
-# Credit Risk Prediction Model
-A machine learning project for data science.
-
 ## Project Overview
 This project aims to identify high-risk loan applicants and automate the loan approval workflow for financial institutions. Using the "Give Me Some Credit" dataset (150,000+ records), this project tackles real-world data challenges including severe class imbalance, missing data mechanics, and non-linear feature relationships. By implementing optimized XGBoost and SMOTE, the system achieves a high AUC-ROC, providing actionable insights for credit risk mitigation.
 
