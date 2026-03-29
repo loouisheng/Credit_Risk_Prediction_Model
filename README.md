@@ -1,20 +1,20 @@
 ## Project Overview
-This project aims to identify high-risk loan applicants and automate the loan approval workflow for financial institutions. Using the "Give Me Some Credit" dataset (150,000+ records), this project tackles real-world data challenges including severe class imbalance, missing data mechanics, and non-linear feature relationships. By implementing optimized XGBoost and SMOTE, the system achieves a high AUC-ROC, providing actionable insights for credit risk mitigation.
+This project aims to identify high-risk loan applicants and automate the loan approval workflow for financial institutions. Using the "Give Me Some Credit" dataset (150,000+ records), this project tackles real-world data challenges including severe class imbalance, missing data mechanics, and non-linear feature relationships. Compared LightGBM, XGBoost, Random Forest, and Logistic Regression to find the optimal balance between speed and precision.
 
 ## Exploratory Data Analysis (EDA): 
 Beyond basic statistics, I performed deep-dive analysis into feature distributions:
 
-* **Target Imbalance:** Identified that only ~6.7% of samples are positive (delinquent), necessitating robust sampling strategies.<p align="center"><img width="567" height="455" alt="delinquency" src="https://github.com/user-attachments/assets/b5509ff6-313a-42ce-bc76-c9fe58116150" /> </p>
+* **Target Imbalance:** Identified that only ~6.7% of samples are positive (delinquent), necessitating robust sampling strategies.<p align="center"><img width="567" height="455" alt="delinquency" src="pictures\DelinquecyDataDistribution.png" /> </p>
 
 * **Outlier Detection:** Utilized Interquartile Range (IQR) and histogram to filter for features like DebtRatio and RevolvingUtilizationOfUnsecuredLines to prevent model bias.
-<p align="center"><img width="1489" height="1189" alt="outliers" src="https://github.com/user-attachments/assets/03951e0c-ab0c-4050-98aa-65fdc22aa935" /></p>
+<p align="center"><img width="1489" height="1189" alt="outliers" src="pictures\All Data Distribution.png" /></p>
 
 * **Correlation Analysis:** Utilized heatmaps to analyze feature correlations and identified the high correlation between delinquency history across different time windows (30-59 days vs 90+ days). This helps us to better understand what are the important features for the model training.
-<p align="center"><img width="1206" height="1126" alt="corr" src="https://github.com/user-attachments/assets/c16b7c5f-4900-431e-b89f-a59028f05b50" /></p>
+<p align="center"><img width="1215" height="1126" alt="corr" src="pictures\CorrelationMap.png" /></p>
 
-## Data Cleaning:
+## ETL Process:
 * **Missing Value Imputation:** Instead of simple deletion, I utilized Median Imputation for MonthlyIncome and NumberOfDependents to preserve data density.
-* **Feature Scaling:** While tree-based models are robust to scale, features were analyzed for skewness; extreme values in MonthlyIncome and DebtRatio were processed using Log Transformation. Applied Log1p transformation to these features to handle zero values and normalize distribution for improved model convergence.
+* **Feature Engineering:** While tree-based models are robust to scale, features were analyzed for skewness; extreme values in MonthlyIncome and DebtRatio were processed using Log Transformation. Applied Log1p transformation to these features to handle zero values and normalize distribution for improved model convergence.
 
 ## Handling Unbalanced Data:
 * **SMOTE:** Generated synthetic examples for the minority class in the high-dimensional feature space.
@@ -26,13 +26,12 @@ The reason why I used two approaches to handle unbalanced data is because I noti
 I utilized XGBoost for its exceptional handling of tabular data and built-in support for missing values.
 
 ```Python
-xgb = XGBClassifier(
-    n_estimators=130, 
-    learning_rate=0.05, 
-    max_depth=5, 
-    scale_pos_weight=15,
-    random_state=42
-)
+models = {
+    "Logistic Regression": LogisticRegression(class_weight='balanced',max_iter=1000,random_state=42),
+    "Random Forest": RandomForestClassifier(n_estimators=130,max_depth=5,class_weight='balanced',random_state=42),
+    "XGBoost": XGBClassifier(n_estimators=130,learning_rate=0.05,max_depth=5,scale_pos_weight=15,random_state=42),
+    "LightGBM": LGBMClassifier(n_estimators=130, learning_rate=0.05, max_depth=5, scale_pos_weight=15, random_state=42, verbosity=-1)
+}
 ```
 * **Learning Rate ($0.05$):** A lower rate combined with sufficient estimators to ensure smooth convergence.
 
@@ -41,22 +40,57 @@ xgb = XGBClassifier(
 The optimal hyperparameters were found by **GridSearch** combined with manual fine-tuning, as automated searches occasionally lead to overfitting on training data.
 
 ## Result
-### Evaluation Metrics
+### Model Comparison
+In unbalanced credit scoring, Accuracy is a misleading metric. We focus on ROC-AUC and Recall as it is more reliable indicators for the model.
 
-In unbalanced credit scoring, Accuracy is a misleading metric. We focus on:
-| Metric | Score | Financial Meaning |
-| :--- | :--- | :--- |
-| ROC-AUC | 0.8643 | Superior ability to rank-order customers by risk. |
-| Recall | 0.79 | Successfully captures 79% of all actual defaulters, significantly reducing credit loss.. |
-| Precision | 0.20 | Acceptable trade-off in cost-sensitive learning; prioritizes "safety first" over manual review overhead. |
+![ROC](pictures\ROC.png)
 
-**Note on Precision:** A Precision of 0.20 is highly competitive given the baseline default rate of ~6.7%. It indicates that the model is 3x more effective than random selection, providing a robust filter for secondary manual credit reviews.
 
-### Feature Importance
 
-<p align="center"><img width="914" height="590" alt="features_importance" src="https://github.com/user-attachments/assets/2ba11bd5-fc42-453c-b3e9-456106c7d385" /></p>
+| Model | ROC-AUC | Recall | Note |
+| :--- | :---: | :---: | :--- |
+| **LightGBM** | **0.87** | **0.80** | **Champion: Best ranking ability and training speed.** |
+| XGBoost | 0.87 | 0.79 | High performance, slightly slower than LightGBM. |
+| Random Forest | 0.86 | 0.75 | Robust but less sensitive to minority class. |
+| Logistic Regression | 0.86 | 0.72 | Linear baseline; highly interpretable. |
 
-* **Revolving Utilization of Unsecured Lines (Top Driver):** It is the strongest predictor of default. High utilization suggests a borrower is "maxing out" their credit cards, indicating a liquidity crunch and immediate financial distress.
-* **Age**: Younger borrowers tend to have more volatile income and less credit history (thin files), whereas older borrowers typically possess higher financial stability and wealth accumulation.
-* **DebtRatio & MonthlyIncome:** A high DebtRatio combined with low MonthlyIncome indicates that a large portion of earnings is already committed to debt servicing, leaving little margin for financial shocks.
-* **Historical Delinquency (30-59 Days Past Due):** Short-term delinquency acts as a Leading Indicator. It is often the first sign of a deteriorating credit profile before a full default occurs.
+
+### Model Interpretability
+
+To comply with financial regulations and build trust, I implemented SHAP to analyze feature contributions.
+
+<p align="center"><img width="802" height="540" alt="features_importance" src="pictures\SHAP.png" /></p>
+
+
+* **Total Past Due:** The most helpful predictor. Even a single past-due event significantly shifts the SHAP value towards the "Default" side.
+* **Revolving Utilization of Unsecured Lines:** It is the second strongest predictor of default. High utilization suggests a borrower is "maxing out" their credit cards, indicating a liquidity crunch and immediate financial distress.
+* **Age:** Younger borrowers tend to have more volatile income and less credit history, whereas older borrowers typically possess higher financial stability and wealth accumulation.
+
+## Interactive Decision Dashboard
+
+The model's output is a probability, but a business needs a Decision. I built a Tableau Dashboard to bridge this gap.
+
+![Demo](pictures\Dashboard.gif)
+
+This Dashboard allows stakeholders to adjust the Probability Threshold (0.0 - 1.0) to see the immediate impact on:
+
+**Bad Debt Saved (USD):** The potential loss avoided by rejecting high-risk applicants.
+
+**Opportunity Cost (USD):** Potential interest revenue lost from "False Positives."
+
+**Risk Segmentation:** Categorizes applicants into Low/Mid/High risk, providing a clear path for automated vs. manual credit review.
+
+**Age Trend Analysis:** Visualized the inverse relationship between age and default probability, confirming the model's bias towards financial stability in older demographics.
+
+For those who want to try on this Dashboard, here is the link for you:
+
+[Tableau Dashboard](https://public.tableau.com/views/CreditRiskPredictionDashboard_17747759597830/1?:language=zh-TW&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+
+## Conclusion
+By shifting from a static model to an interactive decision system, this project provides:
+
+**Quantifiable ROI:** A clear estimate of bad debt reduction helping managers make the informed and data-driven decisions.
+
+**Operational Efficiency:** Automated filtering of low-risk applicants while flagging high-risk cases for human audit.
+
+**Model Explainability:** SHAP-based explanations for every model features, meeting modern fintech compliance standards.
