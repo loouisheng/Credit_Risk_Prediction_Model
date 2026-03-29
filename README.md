@@ -43,9 +43,11 @@ The optimal hyperparameters were found by **GridSearch** combined with manual fi
 ### Model Comparison
 In unbalanced credit scoring, Accuracy is a misleading metric. We focus on ROC-AUC and Recall as it is more reliable indicators for the model.
 
-![ROC](pictures\ROC.png)
+<div align="center">
+  <img src="./pictures/ROC.png" alt="ROC" width="800">
+</div>
 
-
+<div align="center">
 
 | Model | ROC-AUC | Recall | Note |
 | :--- | :---: | :---: | :--- |
@@ -54,6 +56,7 @@ In unbalanced credit scoring, Accuracy is a misleading metric. We focus on ROC-A
 | Random Forest | 0.86 | 0.75 | Robust but less sensitive to minority class. |
 | Logistic Regression | 0.86 | 0.72 | Linear baseline; highly interpretable. |
 
+</div>
 
 ### Model Interpretability
 
@@ -70,7 +73,7 @@ To comply with financial regulations and build trust, I implemented SHAP to anal
 
 The model's output is a probability, but a business needs a Decision. I built a Tableau Dashboard to bridge this gap.
 
-![Demo](pictures\Dashboard.gif)
+![Demo](./pictures/Dashboard.gif)
 
 This Dashboard allows stakeholders to adjust the Probability Threshold (0.0 - 1.0) to see the immediate impact on:
 
