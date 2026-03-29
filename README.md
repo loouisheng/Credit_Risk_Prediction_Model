@@ -12,9 +12,9 @@ Beyond basic statistics, I performed deep-dive analysis into feature distributio
 * **Correlation Analysis:** Utilized heatmaps to analyze feature correlations and identified the high correlation between delinquency history across different time windows (30-59 days vs 90+ days). This helps us to better understand what are the important features for the model training.
 <p align="center"><img width="1215" height="1126" alt="corr" src="pictures\CorrelationMap.png" /></p>
 
-## ETL Process:
-* **Missing Value Imputation:** Instead of simple deletion, I utilized Median Imputation for MonthlyIncome and NumberOfDependents to preserve data density.
-* **Feature Engineering:** While tree-based models are robust to scale, features were analyzed for skewness; extreme values in MonthlyIncome and DebtRatio were processed using Log Transformation. Applied Log1p transformation to these features to handle zero values and normalize distribution for improved model convergence.
+## Data Preprocessing and Feature Engineering:
+* **Missing Value Imputation:** Missing Value Imputation: To maintain data density and prevent bias from row deletion, Median Imputation was applied to MonthlyIncome and NumberOfDependents, ensuring a robust dataset for model training.
+* **Feature Transformation:** While tree-based models are robust to scale, features were analyzed for skewness; extreme values in MonthlyIncome and DebtRatio were processed using Log Transformation. Applied Log1p transformation to these features to handle zero values and normalize distribution for improved model convergence.
 
 ## Handling Unbalanced Data:
 * **SMOTE:** Generated synthetic examples for the minority class in the high-dimensional feature space.
