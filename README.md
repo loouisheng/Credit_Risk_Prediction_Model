@@ -23,7 +23,7 @@ Beyond basic statistics, I performed deep-dive analysis into feature distributio
 The reason why I used two approaches to handle unbalanced data is because I noticed the SMOTE solution's result was not optimistic. Therefore, I used cost-sensitive learning approach to try enhacning the model performance, and it performed better than SMOTE approach.
 
 ## Model Architecture and Hyperparameter Tuning:
-I compared Logistic Regression, Random Forest, XGBoost and LightGBM for model performance as shown below: 
+I compared Logistic Regression, Random Forest, XGBoost and LightGBM for model performance. The model architecture is shown below:
 
 ```Python
 models = {
